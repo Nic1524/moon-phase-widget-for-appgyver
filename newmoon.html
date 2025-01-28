@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moon Phase Visualizer</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: transparent;
+        }
+        .container {
+            text-align: center;
+        }
+        .moon {
+            width: 100px;
+            height: 100px;
+            margin-top: 5px;
+            border: 2px solid #0010CF;
+            border-radius: 50%;
+        }
+        .phase-text {
+            color: #0010CF;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .phase-name {
+            color: #0010CF;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg class="moon" id="moonPhase" viewBox="0 0 100 100" aria-label="Current Moon Phase">
+            <defs>
+                <radialGradient id="moon-gradient" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" style="stop-color: #dcdcdc" />
+                    <stop offset="85%" style="stop-color: #a9a9a9" />
+                    <stop offset="100%" style="stop-color: #808080" />
+                </radialGradient>
+                <linearGradient id="shadow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color: #000000" />
+                    <stop offset="50%" style="stop-color: rgba(0, 0, 0, 0.6)" />
+                    <stop offset="100%" style="stop-color: rgba(0, 0, 0, 0)" />
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="45" fill="url(#moon-gradient)" />
+            <path id="phasePath" fill="url(#shadow-gradient)" />
+        </svg>
+        <div class="phase-text" aria-live="polite">Moon Phase:</div>
+        <div class="phase-name" id="phaseName">Loading...</div>
+    </div>
+
+    <noscript>
+        <div class="fallback">This application requires JavaScript to display the moon phase.</div>
+    </noscript>
+
+    <script>
+        // Ensuring DOM is loaded before running the code
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to calculate the moon phase based on the date
+            function calculateMoonPhase() {
+                const date = new Date();
+                const knownNewMoon = new Date(2024, 11, 01, 06, 22); // Known new moon date: 01/12/2024
+                const daysSinceNewMoon = (date - knownNewMoon) / (1000 * 60 * 60 * 24);
+                return ((daysSinceNewMoon % 29.53) + 29.53) % 29.53 / 29.53;
+            }
+
+            // Function to update the moon phase display
+            function updateMoonPhaseDisplay(phase, name) {
+                const moonPath = document.getElementById('phasePath');
+                const phaseName = document.getElementById('phaseName');
+
+                let d = '';
+                // Check and assign paths based on the calculated phase
+                if (phase < 0.01 || phase > 0.99) {
+                    d = "M50,50 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"; // New Moon
+                } else if (Math.abs(phase - 0.25) < 0.01) {
+                    d = "M50,5 A45,45 0 0,1 50,95 L50,50 Z"; // First Quarter
+                } else if (Math.abs(phase - 0.5) < 0.01) {
+                    d = "M50,5 A45,45 0 1,1 50,95 A45,45 0 1,1 50,5"; // Full Moon
+                } else if (Math.abs(phase - 0.75) < 0.01) {
+                    d = "M50,5 A45,45 0 0,0 50,95 L50,50 Z"; // Last Quarter
+                } else if (phase < 0.5) {
+                    const ratio = phase * 4;
+                    d = `M50,5 A45,45 0 1,1 50,95 A${45 * ratio},45 0 1,0 50,5`; // Waxing Crescent
+                } else {
+                    const ratio = (phase - 0.5) * 4;
+                    d = `M50,5 A${45 * (1 - ratio)},45 0 1,0 50,95 A45,45 0 1,0 50,5`; // Waning Crescent
+                }
+
+                // Update phase name and moon shading
+                phaseName.textContent = name;
+                moonPath.setAttribute('d', d);
+            }
+
+            // Function to get and display the current moon phase
+            function displayMoonPhase() {
+                const phase = calculateMoonPhase();
+                let phaseName = "";
+
+                // Determine the phase based on the calculated phase value
+                if (phase < 0.01 || phase > 0.99) phaseName = "New Moon";
+                else if (Math.abs(phase - 0.25) < 0.01) phaseName = "First Quarter";
+                else if (Math.abs(phase - 0.5) < 0.01) phaseName = "Full Moon";
+                else if (Math.abs(phase - 0.75) < 0.01) phaseName = "Last Quarter";
+                else if (phase < 0.5) phaseName = "Waxing Crescent";
+                else phaseName = "Waning Crescent";
+
+                // Update the display with the calculated phase and name
+                updateMoonPhaseDisplay(phase, phaseName);
+            }
+
+            // Run the function to display the phase when the page is fully loaded
+            displayMoonPhase();
+        });
+    </script>
+</body>
+</html>
